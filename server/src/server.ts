@@ -3,7 +3,7 @@ import path from 'path';
 
 const shortenedUrls = new Map<string, string>();
 
-shortenedUrls.set('google.com', 'g');
+shortenedUrls.set('g', 'https://google.com');
 
 export default () => {
     const app = express();
@@ -46,13 +46,24 @@ export default () => {
     });
 
     app.post('/app/create', (req, res) => {
-        console.log('create endpoint hit');
-        console.log(req.body);
-        res.send('');
+        // absolutely terrible strat for shortening url, but doing this for fun temporarily
+        const abc = 'abcdefghijklmnopqrstuvwxyz';
+        const getRandomChar = () => {
+            return abc[Math.floor(Math.random() * abc.length)];
+        };
+        const randomKey = getRandomChar() + getRandomChar() + getRandomChar() + getRandomChar() + getRandomChar();
+        shortenedUrls.set(randomKey, req.body['urlInput']);
+        res.send('you got it');
     });
 
     app.get('/s/*', (req, res) => {
-        res.send('this is a shortening url: ' + req.path);
+        const key = req.path.slice(3);
+        const url = shortenedUrls.get(key);
+        if (url === undefined) {
+            res.send('unknown url :(');
+            return;
+        }
+        res.redirect(url);
     });
 
     const port = 3000;

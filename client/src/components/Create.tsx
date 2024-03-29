@@ -14,14 +14,17 @@ const Create = () => {
                 setUrlInput(e.target.value);
             }} value={urlInput}/>
         </div>
-        <button onClick={() => {
-            fetch('/app/create', {
+        <button onClick={async () => {
+            const response = await fetch('/app/create', {
                 method: "POST",
                 body: JSON.stringify({ urlInput }),
                 headers: {
                     "Content-type": "application/json; charset=UTF-8"
                 }
             });
+            const data = await response.text();
+            console.log(data);
+            window.location.href = '/view';
             setUrlInput('');
         }}>Create</button>
     </div>;

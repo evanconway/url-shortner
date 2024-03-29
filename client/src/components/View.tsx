@@ -14,7 +14,7 @@ const View = () => {
     }, [setShorts]);
 
     return shorts === undefined ? <div>getting data...</div> : <ul>
-        {shorts.map((entry, i) => <li key={i}>"{entry[0]}" shortened to: "{entry[1]}"</li>)}
+        {shorts.map((entry, i) => <li key={i}><a href={entry[1]}>{entry[1]}</a> shortened to: <a href={entry[1]}>{entry[0]}</a></li>)}
     </ul>
 };
 
