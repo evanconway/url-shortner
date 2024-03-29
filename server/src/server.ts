@@ -1,5 +1,8 @@
 import express from "express";
 import path from 'path';
+import { connectToDatabase, getUserData } from "./database";
+import { Database } from "sqlite";
+import { Database as Sqlite3Database, Statement } from "sqlite3";
 
 const shortenedUrls = new Map<string, string>();
 const ABC = 'abcdefghijklmnopqrstuvwxyz1234567890';
@@ -19,7 +22,7 @@ const addUrl = (url: string) => {
 
 addUrl('https://google.com');
 
-export default () => {
+export default async (db: Database<Sqlite3Database, Statement>) => {
     const app = express();
 
     /*
@@ -60,6 +63,10 @@ export default () => {
         const shorts = keys.map(key => (['localhost:3000/s/' + key, shortenedUrls.get(key)]));
         console.log(shorts);
         res.send(JSON.stringify(shorts));
+    });
+
+    app.get('/app/unsafeuserdata', (req, res) => {
+        getUserData(db).then(v => res.send(v));
     });
 
     app.post('/app/create', (req, res) => {

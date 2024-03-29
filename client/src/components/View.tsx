@@ -11,7 +11,9 @@ const View = () => {
         get();
     }, [setShorts]);
 
-    return shorts === undefined ? <div>getting data...</div> : <ul>
+    if (shorts === undefined) return <div>getting data...</div>;
+
+    return <ul>
         {shorts.map((entry, i) => {
             console.log(entry);
             const url = entry[1];
