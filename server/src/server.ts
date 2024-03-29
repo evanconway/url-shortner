@@ -1,6 +1,6 @@
 import express, { Request } from "express";
 import path from 'path';
-import { connectToDatabase, getURLShorts, getUserData } from "./database";
+import { connectToDatabase, getShortOriginalUrl, getURLShorts, getUserData } from "./database";
 import { Database } from "sqlite";
 import { Database as Sqlite3Database, Statement } from "sqlite3";
 import { getAddURLFunc, greet } from "./serverFunctions";
@@ -40,26 +40,10 @@ export default async (db: Database<Sqlite3Database, Statement>) => {
     app.use(express.json());
 
     app.get('/app/greet', greet);
-
-    app.get('/app/view', async (req, res) => {
-        res.send(JSON.stringify(await getURLShorts(db)));
-    });
-
-    app.get('/app/unsafeuserdata', (req, res) => {
-        getUserData(db).then(v => res.send(v));
-    });
-
+    app.get('/app/view', async (req, res) => res.send(JSON.stringify(await getURLShorts(db))));
+    app.get('/app/unsafeuserdata', (req, res) => getUserData(db).then(v => res.send(v)));
     app.post('/app/create', getAddURLFunc(db));
-
-    app.get('/s/*', (req, res) => {
-        const key = req.path.slice(3);
-        const url = shortenedUrls.get(key);
-        if (url === undefined) {
-            res.send('unknown url :(');
-            return;
-        }
-        res.redirect(url);
-    });
+    app.get('/s/*', async (req, res) => res.redirect(await getShortOriginalUrl(db, req.path.slice(3))));
 
     const port = 3000;
 
