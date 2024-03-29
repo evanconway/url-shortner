@@ -5,16 +5,21 @@ const View = () => {
 
     useEffect(() => {
         const get = async () => {
-            const data = await(await fetch('app/view')).json();
-            const arr = Object.keys(data).map(key => ([key, data[key]]));
-            console.log(arr);
+            const arr = await(await fetch('app/view')).json();
             setShorts(arr);
         };
         get();
     }, [setShorts]);
 
     return shorts === undefined ? <div>getting data...</div> : <ul>
-        {shorts.map((entry, i) => <li key={i}><a href={entry[1]}>{entry[1]}</a> shortened to: <a href={entry[1]}>{entry[0]}</a></li>)}
+        {shorts.map((entry, i) => {
+            console.log(entry);
+            const url = entry[1];
+            const short = entry[0];
+            return <li key={i}>
+                <a href={url}>{url}</a> shortened to: <a href={url}>{short}</a>
+            </li>
+        })}
     </ul>
 };
 

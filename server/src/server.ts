@@ -2,8 +2,22 @@ import express from "express";
 import path from 'path';
 
 const shortenedUrls = new Map<string, string>();
+const ABC = 'abcdefghijklmnopqrstuvwxyz1234567890';
 
-shortenedUrls.set('g', 'https://google.com');
+const addUrl = (url: string) => {
+    // find better shortening system later
+    let key: string | null = null;
+    while (key === null || shortenedUrls.has(key)) {
+        key = '';
+        for (let i = 0; i < 5; i++) {
+            key += ABC[Math.floor(Math.random() * ABC.length)];
+        }
+    }
+    shortenedUrls.set(key, url);
+    return key;
+};
+
+addUrl('https://google.com');
 
 export default () => {
     const app = express();
@@ -42,18 +56,15 @@ export default () => {
     });
 
     app.get('/app/view', (req, res) => {
-        res.send(JSON.stringify(Object.fromEntries(shortenedUrls)));
+        const keys = Array.from(shortenedUrls.keys());
+        const shorts = keys.map(key => (['localhost:3000/s/' + key, shortenedUrls.get(key)]));
+        console.log(shorts);
+        res.send(JSON.stringify(shorts));
     });
 
     app.post('/app/create', (req, res) => {
-        // absolutely terrible strat for shortening url, but doing this for fun temporarily
-        const abc = 'abcdefghijklmnopqrstuvwxyz';
-        const getRandomChar = () => {
-            return abc[Math.floor(Math.random() * abc.length)];
-        };
-        const randomKey = getRandomChar() + getRandomChar() + getRandomChar() + getRandomChar() + getRandomChar();
-        shortenedUrls.set(randomKey, req.body['urlInput']);
-        res.send('you got it');
+        addUrl(req.body['urlInput']);
+        res.sendStatus(200);
     });
 
     app.get('/s/*', (req, res) => {
@@ -69,6 +80,6 @@ export default () => {
     const port = 3000;
 
     app.listen(port, () => {
-        console.log("app listening on port" + port);
+        console.log("app listening on port " + port);
     });
 };
