@@ -1,6 +1,10 @@
 import express from "express";
 import path from 'path';
 
+const shortenedUrls = new Map<string, string>();
+
+shortenedUrls.set('google.com', 'g');
+
 export default () => {
     const app = express();
 
@@ -14,7 +18,10 @@ export default () => {
     this is a react app we want the client to handle that, so we just serve the single index.html.
     */
     app.use((req, res, next) => {
-        if (/(.ico|.js|.css|.jpg|.png|.map)$/i.test(req.path) || req.path.startsWith('/app')) {
+        const requestsStatic = /(.ico|.js|.css|.jpg|.png|.map)$/i.test(req.path);
+        const isAPIEndpoint = req.path.startsWith('/app');
+        const isShort = req.path.startsWith('/s/');
+        if (requestsStatic || isAPIEndpoint || isShort) {
             next();
         } else {
             res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
@@ -28,12 +35,24 @@ export default () => {
     // It explains why we can use default request behavior above for static files.
     app.use(express.static(path.join(__dirname, '../../client/dist')));
 
-
+    app.use(express.json());
 
     app.get('/app/greet', (req, res) => {
-        setTimeout(() => {
-            res.send('hello world');
-        }, 2000);
+        res.send('hello world');
+    });
+
+    app.get('/app/view', (req, res) => {
+        res.send(JSON.stringify(Object.fromEntries(shortenedUrls)));
+    });
+
+    app.post('/app/create', (req, res) => {
+        console.log('create endpoint hit');
+        console.log(req.body);
+        res.send('');
+    });
+
+    app.get('/s/*', (req, res) => {
+        res.send('this is a shortening url: ' + req.path);
     });
 
     const port = 3000;
