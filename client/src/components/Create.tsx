@@ -1,11 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const Create = () => {
     const [urlInput, setUrlInput] = useState('');
-
-    useEffect(() => {
-        console.log(urlInput);
-    }, [urlInput]);
 
     return <div>
         <div>
@@ -23,7 +19,6 @@ const Create = () => {
                 }
             });
             const data = await response.text();
-            console.log(data);
             window.location.href = '/view';
             setUrlInput('');
         }}>Create</button>

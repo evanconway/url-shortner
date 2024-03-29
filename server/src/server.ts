@@ -1,26 +1,11 @@
-import express from "express";
+import express, { Request } from "express";
 import path from 'path';
-import { connectToDatabase, getUserData } from "./database";
+import { connectToDatabase, getURLShorts, getUserData } from "./database";
 import { Database } from "sqlite";
 import { Database as Sqlite3Database, Statement } from "sqlite3";
+import { getAddURLFunc, greet } from "./serverFunctions";
 
 const shortenedUrls = new Map<string, string>();
-const ABC = 'abcdefghijklmnopqrstuvwxyz1234567890';
-
-const addUrl = (url: string) => {
-    // find better shortening system later
-    let key: string | null = null;
-    while (key === null || shortenedUrls.has(key)) {
-        key = '';
-        for (let i = 0; i < 5; i++) {
-            key += ABC[Math.floor(Math.random() * ABC.length)];
-        }
-    }
-    shortenedUrls.set(key, url);
-    return key;
-};
-
-addUrl('https://google.com');
 
 export default async (db: Database<Sqlite3Database, Statement>) => {
     const app = express();
@@ -54,25 +39,17 @@ export default async (db: Database<Sqlite3Database, Statement>) => {
 
     app.use(express.json());
 
-    app.get('/app/greet', (req, res) => {
-        res.send('hello world');
-    });
+    app.get('/app/greet', greet);
 
-    app.get('/app/view', (req, res) => {
-        const keys = Array.from(shortenedUrls.keys());
-        const shorts = keys.map(key => (['localhost:3000/s/' + key, shortenedUrls.get(key)]));
-        console.log(shorts);
-        res.send(JSON.stringify(shorts));
+    app.get('/app/view', async (req, res) => {
+        res.send(JSON.stringify(await getURLShorts(db)));
     });
 
     app.get('/app/unsafeuserdata', (req, res) => {
         getUserData(db).then(v => res.send(v));
     });
 
-    app.post('/app/create', (req, res) => {
-        addUrl(req.body['urlInput']);
-        res.sendStatus(200);
-    });
+    app.post('/app/create', getAddURLFunc(db));
 
     app.get('/s/*', (req, res) => {
         const key = req.path.slice(3);

@@ -6,7 +6,6 @@ const UnsafeUsers = () => {
     useEffect(() => {
         const get = async () => {
             const data: { name: string, password: string }[] = await (await fetch('/app/unsafeuserdata')).json();
-            console.log(data);
             setUsers(data);
         };
         get();
