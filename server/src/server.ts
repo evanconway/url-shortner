@@ -3,7 +3,9 @@ import path from 'path';
 import { getShortOriginalUrl, getURLShorts, getUserData } from "./database";
 import { Database } from "sqlite";
 import { Database as Sqlite3Database, Statement } from "sqlite3";
+import cookieParser from 'cookie-parser';
 import { getAddURLFunc, getCreateAccountFunc, greet } from "./serverFunctions";
+import sessionManager from "./sessionManager";
 
 const isRequestForStatic = (requestPath: string) => {
     return /(.ico|.js|.css|.jpg|.png|.map)$/i.test(requestPath);
@@ -17,9 +19,8 @@ export default async (db: Database<Sqlite3Database, Statement>) => {
     const app = express();
 
     app.use(express.json());
-
+    app.use(cookieParser());
     app.use((req, res, next) => {
-        console.log(req.headers.cookie);
         if (isLoginRequest(req.path) || isRequestForStatic(req.path)) {
             next();
             return;
@@ -28,7 +29,8 @@ export default async (db: Database<Sqlite3Database, Statement>) => {
             next();
             return;
         }
-        if (req.body['sessionId'] === undefined) {
+        const sessionId = req.cookies['sessionId'] as string;
+        if (sessionId === undefined || sessionManager.getUserIdBySessionId(sessionId) === undefined) {
             res.redirect('/login');
             return;
         }
