@@ -12,20 +12,22 @@ const Home = () => {
         get();
     }, [setShorts]);
 
-    if (shorts === undefined) return <div>getting data...</div>;
+    let shortsList = <div>getting data...</div>;
 
-    if (shorts.length <= 0) return <div>no urls shortened yet</div>;
-
-    return <div>
-        <LinkBar />
-        <ul>
+    if (shorts !== undefined) {
+        shortsList = shorts.length <= 0 ? <div>no urls shortened yet</div> : <ul>
             {shorts.map((entry, i) => {
                 const { original: url, short} = entry;
                 return <li key={i}>
                     <a href={url}>{url}</a> shortened to: <a href={url}>{short}</a>
                 </li>
             })}
-        </ul>
+        </ul>;
+    }
+
+    return <div>
+        <LinkBar />
+        {shortsList}
     </div>;
 };
 
