@@ -20,7 +20,7 @@ export const getCreateAccountFunc = (db: Database) => {
             return;
         }
         const sessionId = sessionManager.startSession(userId);
-        res.cookie('sessionId', sessionId).cookie('abc', 'xyz').cookie('power-level', 9001);
+        res.cookie('sessionId', sessionId).cookie('username', username);
         res.sendStatus(200);
     };
 };

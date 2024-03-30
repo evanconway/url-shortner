@@ -25,11 +25,12 @@ export default async (db: Database<Sqlite3Database, Statement>) => {
             next();
             return;
         }
-        if (req.path.startsWith('/app')) {
+        if (req.path.startsWith('/app') || req.path.startsWith('/s/')) {
             next();
             return;
         }
         const sessionId = req.cookies['sessionId'] as string;
+        console.log(sessionId);
         if (sessionId === undefined || sessionManager.getUserIdBySessionId(sessionId) === undefined) {
             res.redirect('/login');
             return;
@@ -65,7 +66,6 @@ export default async (db: Database<Sqlite3Database, Statement>) => {
     app.use(express.static(path.join(__dirname, '../../client/dist')));
 
     app.post('/app/createaccount', getCreateAccountFunc(db));
-    app.get('/app/greet', greet);
     app.get('/app/view', async (req, res) => res.send(JSON.stringify(await getURLShorts(db))));
     app.get('/app/unsafeuserdata', (req, res) => getUserData(db).then(v => res.send(v)));
     app.post('/app/create', getAddURLFunc(db));
