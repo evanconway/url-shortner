@@ -1,9 +1,11 @@
 import { useState } from "react";
+import LinkBar from "./LinkBar";
 
 const Create = () => {
     const [urlInput, setUrlInput] = useState('');
 
     return <div>
+        <LinkBar />
         <div>
             <label htmlFor="url">URL To Shorten</label>
             <input type="text" name="url" onChange={e => {

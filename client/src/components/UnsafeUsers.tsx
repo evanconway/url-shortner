@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import LinkBar from "./LinkBar";
 
 const UnsafeUsers = () => {
     const [users, setUsers] = useState<{name: string, password: string}[]>();
@@ -11,11 +12,17 @@ const UnsafeUsers = () => {
         get();
     }, [setUsers]);
 
-    if (users === undefined) return <div>fetching users...</div>;
+    let returnElement = <div>fetching users...</div>
 
-    return <ul>
-        {users.map(user => <div>{user.name}: {user.password}</div>)}
-    </ul>
+    if (users !== undefined) {
+        if (users.length <= 0) returnElement = <div>{'no users:('}</div>
+        else returnElement = <ul>{users.map(user => <div>{user.name}: {user.password}</div>)}</ul>;
+    }
+
+    return <div>
+        <LinkBar />
+        {returnElement}
+    </div>;
 };
 
 export default UnsafeUsers;

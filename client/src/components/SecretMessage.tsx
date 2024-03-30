@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import LinkBar from "./LinkBar";
 
 const SecretMessage = () => {
     const [msg, setMsg] = useState('getting secret message...');
@@ -11,7 +12,10 @@ const SecretMessage = () => {
         get();
     }, [setMsg]);
 
-    return <div>{msg}</div>;
+    return <div>
+        <LinkBar />
+        {msg}
+    </div>;
 };
 
 export default SecretMessage;

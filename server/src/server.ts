@@ -19,10 +19,14 @@ export default async (db: Database<Sqlite3Database, Statement>) => {
     app.use(express.json());
 
     app.use((req, res, next) => {
-        console.log('checking path:', req.path);
         if (isLoginRequest(req.path) || isRequestForStatic(req.path)) {
             next();
-        } else if (req.body['sessionId'] === undefined) res.redirect('/login');
+            return;
+        }
+        if (req.body['sessionId'] === undefined) {
+            res.redirect('/login');
+            return;
+        }
         else next();
     });
 

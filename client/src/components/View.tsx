@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import LinkBar from "./LinkBar";
 
 const View = () => {
     const [shorts, setShorts] = useState<{ original: string, short: string }[]>();
@@ -15,14 +16,17 @@ const View = () => {
 
     if (shorts.length <= 0) return <div>no urls shortened yet</div>;
 
-    return <ul>
-        {shorts.map((entry, i) => {
-            const { original: url, short} = entry;
-            return <li key={i}>
-                <a href={url}>{url}</a> shortened to: <a href={url}>{short}</a>
-            </li>
-        })}
-    </ul>
+    return <div>
+        <LinkBar />
+        <ul>
+            {shorts.map((entry, i) => {
+                const { original: url, short} = entry;
+                return <li key={i}>
+                    <a href={url}>{url}</a> shortened to: <a href={url}>{short}</a>
+                </li>
+            })}
+        </ul>
+    </div>;
 };
 
 export default View;
