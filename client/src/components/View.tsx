@@ -13,6 +13,8 @@ const View = () => {
 
     if (shorts === undefined) return <div>getting data...</div>;
 
+    if (shorts.length <= 0) return <div>no urls shortened yet</div>;
+
     return <ul>
         {shorts.map((entry, i) => {
             const { original: url, short} = entry;

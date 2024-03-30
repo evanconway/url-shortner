@@ -48,6 +48,6 @@ export default async (db: Database<Sqlite3Database, Statement>) => {
     const port = 3000;
 
     app.listen(port, () => {
-        console.log("app listening on port " + port);
+        console.log(`app deployed at: http://localhost:${port}`);
     });
 };
