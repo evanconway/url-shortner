@@ -16,6 +16,37 @@ export const connectToDatabase = async () => {
     return db;
 };
 
+export const getUserIdBySessionId = async (db: Database, sessionId: string) => {
+    try {
+        const row = await db.get('SELECT user_id FROM session WHERE id = $sessionId', { $sessionId: sessionId });
+        return row['user_id'] as string;
+    } catch (err) {
+        console.error(err);
+    }
+    return null;
+};
+
+export const startSession = async (db: Database, userId: string) => {
+    const key = uuidv4();
+    try {
+        await db.run('INSERT INTO session (id, user_id) VALUES($id, $userId)', { $id: key, $userId: userId});
+        return key;
+    } catch (err) {
+        console.error(err);
+    }
+    return null;
+};
+
+export const endSession = async (db: Database, sessionId: string) => {
+    try {
+        await db.run('DELETE FROM session WHERE id = $sessionId', { $sessionId: sessionId });
+        return true;
+    } catch (err) {
+        console.error(err);
+    }
+    return false;
+};
+
 /**
  * Return boolean indicating if the given username is already in the user table of the database.
  * 
@@ -26,6 +57,13 @@ export const connectToDatabase = async () => {
 export const getUsernameIsTaken = async (db: Database, username: string) => {
     const row = await db.get('SELECT * FROM user WHERE name = $username', { $username: username });
     return row !== undefined;
+};
+
+export const getUsernameByUserId = async (db: Database, userId: string) => {
+    const row = await db.get('SELECT name FROM user WHERE id = $userId', { $userId: userId });
+    const result = row['name'];
+    if (result === undefined) return null;
+    return result as string;
 };
 
 /**

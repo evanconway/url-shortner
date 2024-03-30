@@ -4,7 +4,7 @@ import { getShortOriginalUrl } from "./database";
 import { Database } from "sqlite";
 import { Database as Sqlite3Database, Statement } from "sqlite3";
 import cookieParser from 'cookie-parser';
-import { getAddURLFunc, getCreateAccountFunc, getGetUrlShortsFunc, getUserIdFromRequest } from "./serverFunctions";
+import { getAddURLFunc, getCreateAccountFunc, getGetUrlShortsFunc, getGetUsernameFromRequestFunc, getUserIdFromRequest } from "./serverFunctions";
 
 const staticFileDir = '../../client/dist';
 
@@ -25,13 +25,13 @@ export default async (db: Database<Sqlite3Database, Statement>) => {
     const app = express();
     app.use(express.json());
     app.use(cookieParser());
-    app.use((req, res, next) => {
+    app.use(async (req, res, next) => {
         // if request is for shortened url, allow normal behavior
         if (req.path.startsWith('/s/') || req.path === '/app/login' || req.path === '/app/createaccount') next();
         else if (req.path === '/login' || req.path === '/createaccount') sendHTMLFile(res);
         else if (req.path === '/app/login' || req.path === '/app/createaccount') next();
         else if (isRequestForStatic(req)) next();
-        else if (getUserIdFromRequest(req) === null) res.redirect('/login');
+        else if (await getUserIdFromRequest(db, req) === null) res.redirect('/login');
         else if (!req.path.startsWith('/app/')) sendHTMLFile(res);
         else next(); // all other requests must be /app endpoints with valid sessionId, or explicit static file requests
     });
@@ -50,6 +50,7 @@ export default async (db: Database<Sqlite3Database, Statement>) => {
     app.post('/app/createaccount', getCreateAccountFunc(db));
     app.get('/app/view', getGetUrlShortsFunc(db));
     app.post('/app/create', getAddURLFunc(db));
+    app.get('/app/username', getGetUsernameFromRequestFunc(db));
     app.get('/s/*', async (req, res) => res.redirect(await getShortOriginalUrl(db, req.path.slice(3))));
 
     const port = 3000;

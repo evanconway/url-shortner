@@ -1,7 +1,6 @@
 import { Request, Response} from 'express';
 import { Database } from 'sqlite';
-import { addURLShort, createUser, getURLShortsByUserId, getUsernameIsTaken } from './database';
-import sessionManager from './sessionManager';
+import { addURLShort, createUser, getURLShortsByUserId, getUserIdBySessionId, getUsernameByUserId, getUsernameIsTaken, startSession } from './database';
 
 /**
  * Given a request, return the userId associated with the sessionId stored
@@ -9,15 +8,33 @@ import sessionManager from './sessionManager';
  * or no valid userId associated with the contained sessionId, return
  * null instead.
  * 
+ * @param db 
  * @param req 
  * @returns 
  */
-export const getUserIdFromRequest = (req: Request) => {
+export const getUserIdFromRequest = async (db: Database, req: Request) => {
     const sessionId = req.cookies['sessionId'] as string;
     if (sessionId === undefined) return null;
-    const userId = sessionManager.getUserIdBySessionId(sessionId);
+    const userId =  await getUserIdBySessionId(db, sessionId);
     if (userId === undefined) return null;
     return userId;
+}; 
+
+export const getGetUsernameFromRequestFunc = (db: Database) => {
+    return async (req: Request, res: Response) => {
+        // later we should make a new database function that gets this directly with a table join
+        const userId = await getUserIdFromRequest(db, req);
+        if (userId === null) {
+            res.sendStatus(404);
+            return;
+        }
+        const name = await getUsernameByUserId(db, userId);
+        if (name === null) {
+            res.sendStatus(404);
+            return;
+        }
+        res.send(JSON.stringify(name));
+    };
 };
 
 export const getCreateAccountFunc = (db: Database) => {
@@ -32,15 +49,19 @@ export const getCreateAccountFunc = (db: Database) => {
             res.sendStatus(500);
             return;
         }
-        const sessionId = sessionManager.startSession(userId);
-        res.cookie('sessionId', sessionId).cookie('username', username);
+        const sessionId = await startSession(db, userId);
+        if (sessionId === null) {
+            res.sendStatus(500);
+            return;
+        }
+        res.cookie('sessionId', sessionId);
         res.sendStatus(200);
     };
 };
 
 export const getAddURLFunc = (db: Database) => {
     return async (req: Request, res: Response) => {
-        const userId = getUserIdFromRequest(req);
+        const userId = await getUserIdFromRequest(db, req);
         if (userId === null) {
             res.sendStatus(409);
             return;
@@ -57,7 +78,7 @@ export const getAddURLFunc = (db: Database) => {
 
 export const getGetUrlShortsFunc = (db: Database) => {
     return async (req: Request, res: Response) => {
-        const userId = getUserIdFromRequest(req);
+        const userId = await getUserIdFromRequest(db, req);
         if (userId === null) {
             res.sendStatus(409);
             return;

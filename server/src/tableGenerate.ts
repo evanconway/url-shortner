@@ -24,6 +24,15 @@ const generateTables = async (db: Database) => {
                         NOT NULL
         );
     `);
+
+    // session
+    await db.run(`
+        CREATE TABLE IF NOT EXISTS session (
+            id      TEXT PRIMARY KEY
+                        NOT NULL,
+            user_id TEXT REFERENCES user (id) 
+        );    
+    `);
 };
 
 export default generateTables;
