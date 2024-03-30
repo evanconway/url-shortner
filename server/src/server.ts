@@ -1,14 +1,19 @@
-import express, { Request } from "express";
+import express from "express";
 import path from 'path';
-import { connectToDatabase, getShortOriginalUrl, getURLShorts, getUserData } from "./database";
+import { getShortOriginalUrl, getURLShorts, getUserData } from "./database";
 import { Database } from "sqlite";
 import { Database as Sqlite3Database, Statement } from "sqlite3";
 import { getAddURLFunc, greet } from "./serverFunctions";
 
-const shortenedUrls = new Map<string, string>();
-
 export default async (db: Database<Sqlite3Database, Statement>) => {
     const app = express();
+
+    app.use(express.json());
+
+    app.use((req, res, next) => {
+        if (req.body['sessionToken'] === undefined) console.log('no session token');
+        next();
+    });
 
     /*
     from: https://leejjon.medium.com/create-a-react-app-served-by-express-js-node-js-and-add-typescript-33705be3ceda
@@ -36,8 +41,6 @@ export default async (db: Database<Sqlite3Database, Statement>) => {
     // I believe this tells requests for static files to serve them from the given directory.
     // It explains why we can use default request behavior above for static files.
     app.use(express.static(path.join(__dirname, '../../client/dist')));
-
-    app.use(express.json());
 
     app.get('/app/greet', greet);
     app.get('/app/view', async (req, res) => res.send(JSON.stringify(await getURLShorts(db))));
