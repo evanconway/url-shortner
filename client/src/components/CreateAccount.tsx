@@ -40,8 +40,20 @@ const CreateAccount = () => {
                 "Content-type": "application/json; charset=UTF-8"
             }
         });
-        if (response.ok) window.location.href = '/';
+        if (response.ok) {
+            window.location.href = '/';
+            setAccount({ username: '', password: '', repass: ''});
+            return;
+        }
+        if (response.status === 409) {
+            const data = await response.json();
+            if (data['msg'] === 'name-taken') {
+                setMsg('username is taken');
+                return;
+            }
+        }
         setAccount({ username: '', password: '', repass: ''});
+        return;
     };
 
     return <form onSubmit={onSubmit}>

@@ -41,7 +41,7 @@ export const getCreateAccountFunc = (db: Database) => {
     return async (req: Request, res: Response) => {
         const { username, password } = req.body;
         if (await getUsernameIsTaken(db, username)) {
-            res.status(409).send({ msg: 'username taken' });
+            res.status(409).send({ msg: 'name-taken' });
             return;
         }
         const userId = await createUser(db, username, password);
