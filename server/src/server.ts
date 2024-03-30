@@ -1,10 +1,10 @@
 import express, { Request, Response } from "express";
 import path from 'path';
-import { getShortOriginalUrl, getURLShorts, getUserData } from "./database";
+import { getShortOriginalUrl, getURLShortsByUserId } from "./database";
 import { Database } from "sqlite";
 import { Database as Sqlite3Database, Statement } from "sqlite3";
 import cookieParser from 'cookie-parser';
-import { getAddURLFunc, getCreateAccountFunc } from "./serverFunctions";
+import { getAddURLFunc, getCreateAccountFunc, getGetUrlShortsFunc, getUserIdFromRequest } from "./serverFunctions";
 import sessionManager from "./sessionManager";
 
 const staticFileDir = '../../client/dist';
@@ -14,13 +14,6 @@ const sendHTMLFile = (res: Response) => {
     res.header('Expires', '-1');
     res.header('Pragma', 'no-cache');
     res.sendFile(path.join(__dirname, staticFileDir, 'index.html'));
-};
-
-const requestHasValidSessionId = (req: Request) => {
-    const sessionId = req.cookies['sessionId'] as string;
-    if (sessionId === undefined) return false;
-    if (sessionManager.getUserIdBySessionId(sessionId) === undefined) return false;
-    return true;
 };
 
 // serving static content with express:
@@ -39,7 +32,7 @@ export default async (db: Database<Sqlite3Database, Statement>) => {
         else if (req.path === '/login' || req.path === '/createaccount') sendHTMLFile(res);
         else if (req.path === '/app/login' || req.path === '/app/createaccount') next();
         else if (isRequestForStatic(req)) next();
-        else if (!requestHasValidSessionId(req)) res.redirect('/login');
+        else if (getUserIdFromRequest(req) === null) res.redirect('/login');
         else if (!req.path.startsWith('/app/')) sendHTMLFile(res);
         else next(); // all other requests must be /app endpoints with valid sessionId, or explicit static file requests
     });
@@ -56,8 +49,7 @@ export default async (db: Database<Sqlite3Database, Statement>) => {
     app.use(express.static(path.join(__dirname, staticFileDir)));
 
     app.post('/app/createaccount', getCreateAccountFunc(db));
-    app.get('/app/view', async (req, res) => res.send(JSON.stringify(await getURLShorts(db))));
-    app.get('/app/unsafeuserdata', (req, res) => getUserData(db).then(v => res.send(v)));
+    app.get('/app/view', getGetUrlShortsFunc(db));
     app.post('/app/create', getAddURLFunc(db));
     app.get('/s/*', async (req, res) => res.redirect(await getShortOriginalUrl(db, req.path.slice(3))));
 
