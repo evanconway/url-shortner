@@ -5,14 +5,25 @@ import { Database } from "sqlite";
 import { Database as Sqlite3Database, Statement } from "sqlite3";
 import { getAddURLFunc, greet } from "./serverFunctions";
 
+const isRequestForStatic = (requestPath: string) => {
+    return /(.ico|.js|.css|.jpg|.png|.map)$/i.test(requestPath);
+};
+
+const isLoginRequest = (requestPath: string) => {
+    return requestPath === '/login' || requestPath === '/createaccount';
+};
+
 export default async (db: Database<Sqlite3Database, Statement>) => {
     const app = express();
 
     app.use(express.json());
 
     app.use((req, res, next) => {
-        if (req.body['sessionToken'] === undefined) console.log('no session token');
-        next();
+        console.log('checking path:', req.path);
+        if (isLoginRequest(req.path) || isRequestForStatic(req.path)) {
+            next();
+        } else if (req.body['sessionId'] === undefined) res.redirect('/login');
+        else next();
     });
 
     /*
@@ -25,7 +36,7 @@ export default async (db: Database<Sqlite3Database, Statement>) => {
     this is a react app we want the client to handle that, so we just serve the single index.html.
     */
     app.use((req, res, next) => {
-        const requestsStatic = /(.ico|.js|.css|.jpg|.png|.map)$/i.test(req.path);
+        const requestsStatic = isRequestForStatic(req.path);
         const isAPIEndpoint = req.path.startsWith('/app');
         const isShort = req.path.startsWith('/s/');
         if (requestsStatic || isAPIEndpoint || isShort) {

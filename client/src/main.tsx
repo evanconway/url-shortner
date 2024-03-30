@@ -6,6 +6,7 @@ import SecretMessage from './components/SecretMessage';
 import Create from './components/Create';
 import View from './components/View';
 import UnsafeUsers from './components/UnsafeUsers';
+import Login from './components/Login';
 
 const Link = (to: string, text: string) => <RRLink style={{ padding: '0 5px' }} to={to}>{text}</RRLink>;
 
@@ -26,6 +27,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 					<Route path='/view' element={<View/>} />
 					<Route path='/secret' element={<SecretMessage/>} />
 					<Route path='/users' element={<UnsafeUsers/>} />
+					<Route path='/login' element={<Login/>} />
 				</Routes>
 			</div>
 		</BrowserRouter>
