@@ -1,6 +1,29 @@
 import { Request, Response} from 'express';
 import { Database } from 'sqlite';
-import { addURLShort, createUser, getURLShortsByUserId, getUserIdBySessionId, getUsernameByUserId, getUsernameIsTaken, startSession } from './database';
+import { addURLShort, createUser, endSession, getURLShortsByUserId, getUserIdBySessionId, getUserIdByUsername, getUserIdByUsernamePassword, getUsernameByUserId, getUsernameIsTaken, startSession } from './database';
+
+export const getLoginFunc = (db: Database) => {
+    return async (req: Request, res: Response) => {
+        const { username, password } = req.body;
+        const userIdFromUsername = await getUserIdByUsername(db, username);
+        if (userIdFromUsername === null) {
+            res.status(401).send(JSON.stringify({ msg: 'no-account' }));
+            return;
+        }
+        const userId = await getUserIdByUsernamePassword(db, username, password);
+        if (userId === null) {
+            res.status(401).send(JSON.stringify({ msg: 'wrong-pass' }));
+            return;
+        }
+        const sessionId = await startSession(db, userId);
+        if (sessionId === null) {
+            res.sendStatus(500);
+            return;
+        }
+        res.cookie('sessionId', sessionId);
+        res.sendStatus(200);
+    };
+};
 
 /**
  * Given a request, return the userId associated with the sessionId stored
@@ -18,7 +41,19 @@ export const getUserIdFromRequest = async (db: Database, req: Request) => {
     const userId =  await getUserIdBySessionId(db, sessionId);
     if (userId === undefined) return null;
     return userId;
-}; 
+};
+
+export const getLogoutFunc = (db: Database) => {
+    return async (req: Request, res: Response) => {
+        const sessionId = req.cookies['sessionId'] as string;
+        if (sessionId === null) {
+            res.sendStatus(422);
+            return;
+        }
+        await endSession(db, sessionId);
+        res.cookie('sessionId', null).sendStatus(200);
+    };
+};
 
 export const getGetUsernameFromRequestFunc = (db: Database) => {
     return async (req: Request, res: Response) => {

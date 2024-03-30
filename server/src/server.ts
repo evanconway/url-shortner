@@ -4,7 +4,7 @@ import { getShortOriginalUrl } from "./database";
 import { Database } from "sqlite";
 import { Database as Sqlite3Database, Statement } from "sqlite3";
 import cookieParser from 'cookie-parser';
-import { getAddURLFunc, getCreateAccountFunc, getGetUrlShortsFunc, getGetUsernameFromRequestFunc, getUserIdFromRequest } from "./serverFunctions";
+import { getAddURLFunc, getCreateAccountFunc, getGetUrlShortsFunc, getGetUsernameFromRequestFunc, getLoginFunc, getLogoutFunc, getUserIdFromRequest } from "./serverFunctions";
 
 const staticFileDir = '../../client/dist';
 
@@ -48,6 +48,8 @@ export default async (db: Database<Sqlite3Database, Statement>) => {
     app.use(express.static(path.join(__dirname, staticFileDir)));
 
     app.post('/app/createaccount', getCreateAccountFunc(db));
+    app.post('/app/login', getLoginFunc(db));
+    app.get('/app/logout', getLogoutFunc(db));
     app.get('/app/view', getGetUrlShortsFunc(db));
     app.post('/app/create', getAddURLFunc(db));
     app.get('/app/username', getGetUsernameFromRequestFunc(db));

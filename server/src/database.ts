@@ -16,6 +16,18 @@ export const connectToDatabase = async () => {
     return db;
 };
 
+export const getUserIdByUsername = async (db: Database, username: string) => {
+    const row = await db.get('SELECT id FROM user WHERE name = $username', { $username: username });
+    if (row === undefined) return null
+    return row['id'] as string;
+};
+
+export const getUserIdByUsernamePassword = async (db: Database, username: string, password: string) => {
+    const row = await db.get('SELECT id FROM user WHERE name = $username and password = $password', { $username: username, $password: password});
+    if (row === undefined) return null
+    return row['id'] as string;
+};
+
 export const getUserIdBySessionId = async (db: Database, sessionId: string) => {
     try {
         const row = await db.get('SELECT user_id FROM session WHERE id = $sessionId', { $sessionId: sessionId });
