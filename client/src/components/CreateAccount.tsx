@@ -20,14 +20,6 @@ const CreateAccount = () => {
 
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (account.username.length < 5) {
-            setMsg('username must be at least 5 characters');
-            return;
-        }
-        if (account.password.length < 8) {
-            setMsg('password must be at least 8 characters');
-            return;
-        }
         if (account.password !== account.repass) {
             setMsg('re-entered password does not match');
             return;
@@ -35,7 +27,7 @@ const CreateAccount = () => {
         setMsg('creating account please wait...');
         const response = await fetch('/app/createaccount', {
             method: 'POST',
-            body: JSON.stringify({ username: account.username, password: account.password }),
+            body: JSON.stringify({ username: account.username, password: account.password, repassword: account.repass }),
             headers: {
                 "Content-type": "application/json; charset=UTF-8"
             }
@@ -45,12 +37,10 @@ const CreateAccount = () => {
             setAccount({ username: '', password: '', repass: ''});
             return;
         }
-        if (response.status === 409) {
+        if (response.status === 400) {
             const data = await response.json();
-            if (data['msg'] === 'name-taken') {
-                setMsg('username is taken');
-                return;
-            }
+            setMsg(data['msg']);
+            return;
         }
         setAccount({ username: '', password: '', repass: ''});
         return;

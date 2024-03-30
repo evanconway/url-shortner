@@ -29,13 +29,9 @@ export const getUserIdByUsernamePassword = async (db: Database, username: string
 };
 
 export const getUserIdBySessionId = async (db: Database, sessionId: string) => {
-    try {
-        const row = await db.get('SELECT user_id FROM session WHERE id = $sessionId', { $sessionId: sessionId });
-        return row['user_id'] as string;
-    } catch (err) {
-        console.error(err);
-    }
-    return null;
+    const row = await db.get('SELECT user_id FROM session WHERE id = $sessionId', { $sessionId: sessionId });
+    if (row === undefined) return null;
+    return row['user_id'] as string;
 };
 
 export const startSession = async (db: Database, userId: string) => {

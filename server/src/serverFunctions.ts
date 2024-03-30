@@ -7,12 +7,12 @@ export const getLoginFunc = (db: Database) => {
         const { username, password } = req.body;
         const userIdFromUsername = await getUserIdByUsername(db, username);
         if (userIdFromUsername === null) {
-            res.status(401).send(JSON.stringify({ msg: 'no-account' }));
+            res.status(401).send({ msg: 'no-account' });
             return;
         }
         const userId = await getUserIdByUsernamePassword(db, username, password);
         if (userId === null) {
-            res.status(401).send(JSON.stringify({ msg: 'wrong-pass' }));
+            res.status(401).send({ msg: 'wrong-pass' });
             return;
         }
         const sessionId = await startSession(db, userId);
@@ -51,7 +51,7 @@ export const getLogoutFunc = (db: Database) => {
             return;
         }
         await endSession(db, sessionId);
-        res.cookie('sessionId', null).sendStatus(200);
+        res.cookie('sessionId', '').sendStatus(200);
     };
 };
 
@@ -74,9 +74,17 @@ export const getGetUsernameFromRequestFunc = (db: Database) => {
 
 export const getCreateAccountFunc = (db: Database) => {
     return async (req: Request, res: Response) => {
-        const { username, password } = req.body;
+        const { username, password, repassword } = req.body;
         if (await getUsernameIsTaken(db, username)) {
-            res.status(409).send({ msg: 'name-taken' });
+            res.status(400).send({ msg: 'username is taken' });
+            return;
+        }
+        if (password.length < 8) {
+            res.status(400).send({ msg: 'password must be at least 8 characters' });
+            return;
+        }
+        if (password !== repassword) {
+            res.status(400).send({ msg: 'passwords do not match'});
             return;
         }
         const userId = await createUser(db, username, password);
