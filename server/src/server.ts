@@ -1,69 +1,59 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import path from 'path';
 import { getShortOriginalUrl, getURLShorts, getUserData } from "./database";
 import { Database } from "sqlite";
 import { Database as Sqlite3Database, Statement } from "sqlite3";
 import cookieParser from 'cookie-parser';
-import { getAddURLFunc, getCreateAccountFunc, greet } from "./serverFunctions";
+import { getAddURLFunc, getCreateAccountFunc } from "./serverFunctions";
 import sessionManager from "./sessionManager";
 
-const isRequestForStatic = (requestPath: string) => {
-    return /(.ico|.js|.css|.jpg|.png|.map)$/i.test(requestPath);
+const staticFileDir = '../../client/dist';
+
+const sendHTMLFile = (res: Response) => {
+    res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+    res.header('Expires', '-1');
+    res.header('Pragma', 'no-cache');
+    res.sendFile(path.join(__dirname, staticFileDir, 'index.html'));
 };
 
-const isLoginRequest = (requestPath: string) => {
-    return requestPath === '/login' || requestPath === '/createaccount';
+const requestHasValidSessionId = (req: Request) => {
+    const sessionId = req.cookies['sessionId'] as string;
+    if (sessionId === undefined) return false;
+    if (sessionManager.getUserIdBySessionId(sessionId) === undefined) return false;
+    return true;
+};
+
+// serving static content with express:
+// https://leejjon.medium.com/create-a-react-app-served-by-express-js-node-js-and-add-typescript-33705be3ceda
+const isRequestForStatic = (req: Request) => {
+    return /(.ico|.js|.css|.jpg|.png|.map)$/i.test(req.path);
 };
 
 export default async (db: Database<Sqlite3Database, Statement>) => {
     const app = express();
-
     app.use(express.json());
     app.use(cookieParser());
     app.use((req, res, next) => {
-        if (isLoginRequest(req.path) || isRequestForStatic(req.path)) {
-            next();
-            return;
-        }
-        if (req.path.startsWith('/app') || req.path.startsWith('/s/')) {
-            next();
-            return;
-        }
-        const sessionId = req.cookies['sessionId'] as string;
-        console.log(sessionId);
-        if (sessionId === undefined || sessionManager.getUserIdBySessionId(sessionId) === undefined) {
-            res.redirect('/login');
-            return;
-        }
-        else next();
+        // if request is for shortened url, allow normal behavior
+        if (req.path.startsWith('/s/') || req.path === '/app/login' || req.path === '/app/createaccount') next();
+        else if (req.path === '/login' || req.path === '/createaccount') sendHTMLFile(res);
+        else if (req.path === '/app/login' || req.path === '/app/createaccount') next();
+        else if (isRequestForStatic(req)) next();
+        else if (!requestHasValidSessionId(req)) res.redirect('/login');
+        else if (!req.path.startsWith('/app/')) sendHTMLFile(res);
+        else next(); // all other requests must be /app endpoints with valid sessionId, or explicit static file requests
     });
 
     /*
-    from: https://leejjon.medium.com/create-a-react-app-served-by-express-js-node-js-and-add-typescript-33705be3ceda
-
-    Need to spend more time understanding later. The regex expression seems to check if the path name ends in any
-    of the static file extension names. We added the req.path.startsWith('/app') ourselves. So this means if a
-    request asks for a static file, or doesn't start with /app, the express app will be handled by behavior defined
-    later in the file. So all other requests are assumed to be requests for "theoretical" HTML files. But since
-    this is a react app we want the client to handle that, so we just serve the single index.html.
+        From docs on express.static middleware:
+        "The function determines the file to serve by combining req.url with the provided root directory. When a file
+        is not found, instead of sending a 404 response, it calls next() to move on to the next middleware, allowing
+        for stacking and fall-backs."
+        So this middleware automatically takes care of serving .css, .js, and other explicitly requested files. But
+        will continue to other defined endpoints if no such files exists.
+        See above for explicitly serving the index.html file.
     */
-    app.use((req, res, next) => {
-        const requestsStatic = isRequestForStatic(req.path);
-        const isAPIEndpoint = req.path.startsWith('/app');
-        const isShort = req.path.startsWith('/s/');
-        if (requestsStatic || isAPIEndpoint || isShort) {
-            next();
-        } else {
-            res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
-            res.header('Expires', '-1');
-            res.header('Pragma', 'no-cache');
-            res.sendFile(path.join(__dirname, '../../client/dist', 'index.html'));
-        }
-    });
-    
-    // I believe this tells requests for static files to serve them from the given directory.
-    // It explains why we can use default request behavior above for static files.
-    app.use(express.static(path.join(__dirname, '../../client/dist')));
+    app.use(express.static(path.join(__dirname, staticFileDir)));
 
     app.post('/app/createaccount', getCreateAccountFunc(db));
     app.get('/app/view', async (req, res) => res.send(JSON.stringify(await getURLShorts(db))));

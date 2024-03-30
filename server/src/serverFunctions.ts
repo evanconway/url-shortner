@@ -3,10 +3,6 @@ import { Database } from 'sqlite';
 import { addURLShort, createUser, getUsernameIsTaken } from './database';
 import sessionManager from './sessionManager';
 
-export const greet = (req: Request, res: Response) => {
-        res.send('hello world');
-};
-
 export const getCreateAccountFunc = (db: Database) => {
     return async (req: Request, res: Response) => {
         const { username, password } = req.body;
