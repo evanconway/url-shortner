@@ -1,11 +1,10 @@
 import express, { Request, Response } from "express";
 import path from 'path';
-import { getShortOriginalUrl, getURLShortsByUserId } from "./database";
+import { getShortOriginalUrl } from "./database";
 import { Database } from "sqlite";
 import { Database as Sqlite3Database, Statement } from "sqlite3";
 import cookieParser from 'cookie-parser';
 import { getAddURLFunc, getCreateAccountFunc, getGetUrlShortsFunc, getUserIdFromRequest } from "./serverFunctions";
-import sessionManager from "./sessionManager";
 
 const staticFileDir = '../../client/dist';
 
