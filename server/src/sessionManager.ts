@@ -20,6 +20,7 @@ class SessionManager {
         const invalidTime = Date.now() + 60 * 1000;
         const sessionId = uuidv4();
         this.sessions.set(sessionId, { userId, invalidTime });
+        return sessionId;
     }
 
     endSession(sessionId: string) {

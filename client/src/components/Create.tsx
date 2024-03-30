@@ -13,7 +13,7 @@ const Create = () => {
             }} value={urlInput}/>
         </div>
         <button onClick={async () => {
-            await fetch('/app/create', {
+            await fetch('/app/createaccount', {
                 method: "POST",
                 body: JSON.stringify({ urlInput }),
                 headers: {

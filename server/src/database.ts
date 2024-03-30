@@ -11,6 +11,25 @@ export const connectToDatabase = async () => {
     return db;
 };
 
+export const getUsernameIsTaken = async (db: Database, username: string) => {
+    const row = await db.get('SELECT * FROM user WHERE name = $username', { $username: username });
+    return row !== undefined;
+};
+
+export const createUser = async (db: Database, username: string, password: string) => {
+    try {
+        const userId = uuidv4();
+        await db.run(
+            'INSERT INTO user (id, name, password) VALUES($id, $name, $password)',
+            { $id: userId, $name: username, $password: password },
+        );
+        return userId;
+    } catch (err) {
+        console.error(err);
+    }
+    return null;
+};
+
 export const getUserData = async (db: Database) => {
     const rows = await db.all('Select * FROM user;');
     return rows;

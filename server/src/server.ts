@@ -3,7 +3,7 @@ import path from 'path';
 import { getShortOriginalUrl, getURLShorts, getUserData } from "./database";
 import { Database } from "sqlite";
 import { Database as Sqlite3Database, Statement } from "sqlite3";
-import { getAddURLFunc, greet } from "./serverFunctions";
+import { getAddURLFunc, getCreateAccountFunc, greet } from "./serverFunctions";
 
 const isRequestForStatic = (requestPath: string) => {
     return /(.ico|.js|.css|.jpg|.png|.map)$/i.test(requestPath);
@@ -19,7 +19,12 @@ export default async (db: Database<Sqlite3Database, Statement>) => {
     app.use(express.json());
 
     app.use((req, res, next) => {
+        console.log(req.headers.cookie);
         if (isLoginRequest(req.path) || isRequestForStatic(req.path)) {
+            next();
+            return;
+        }
+        if (req.path.startsWith('/app')) {
             next();
             return;
         }
@@ -57,6 +62,7 @@ export default async (db: Database<Sqlite3Database, Statement>) => {
     // It explains why we can use default request behavior above for static files.
     app.use(express.static(path.join(__dirname, '../../client/dist')));
 
+    app.post('/app/createaccount', getCreateAccountFunc(db));
     app.get('/app/greet', greet);
     app.get('/app/view', async (req, res) => res.send(JSON.stringify(await getURLShorts(db))));
     app.get('/app/unsafeuserdata', (req, res) => getUserData(db).then(v => res.send(v)));

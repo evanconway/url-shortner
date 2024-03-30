@@ -10,12 +10,15 @@ const CreateAccount = () => {
     const [account, setAccount] = useState<AccountInfo>({ username: '', password: '', repass: '' });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setAccount({ ...account, [e.target.name]: e.target.value });
+        setAccount({
+            ...account,
+            [e.target.name]: e.target.value
+        });
     };
 
     const [msg, setMsg] = useState<string | null>(null);
 
-    const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (account.username.length < 5) {
             setMsg('username must be at least 5 characters');
@@ -30,6 +33,15 @@ const CreateAccount = () => {
             return;
         }
         setMsg('creating account please wait...');
+        const response = await fetch('/app/createaccount', {
+            method: 'POST',
+            body: JSON.stringify({ username: account.username, password: account.password }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        });
+
+        console.log(response);
         setAccount({ username: '', password: '', repass: ''});
     };
 
