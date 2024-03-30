@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import LinkBar from "./LinkBar";
 
-const View = () => {
+const Home = () => {
     const [shorts, setShorts] = useState<{ original: string, short: string }[]>();
 
     useEffect(() => {
@@ -29,4 +29,4 @@ const View = () => {
     </div>;
 };
 
-export default View;
+export default Home;

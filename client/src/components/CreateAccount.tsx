@@ -40,8 +40,7 @@ const CreateAccount = () => {
                 "Content-type": "application/json; charset=UTF-8"
             }
         });
-
-        console.log(response);
+        if (response.ok) window.location.href = '/';
         setAccount({ username: '', password: '', repass: ''});
     };
 

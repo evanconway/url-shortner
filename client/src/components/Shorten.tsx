@@ -1,7 +1,7 @@
 import { useState } from "react";
 import LinkBar from "./LinkBar";
 
-const Create = () => {
+const Shorten = () => {
     const [urlInput, setUrlInput] = useState('');
 
     return <div>
@@ -20,10 +20,10 @@ const Create = () => {
                     "Content-type": "application/json; charset=UTF-8"
                 }
             });
-            window.location.href = '/view';
+            window.location.href = '/';
             setUrlInput('');
         }}>Create</button>
     </div>;
 };
 
-export default Create;
+export default Shorten;
