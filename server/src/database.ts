@@ -1,6 +1,7 @@
 import { Database as Sqlite3Database } from "sqlite3";
 import { Database, open } from 'sqlite';
 import { v4 as uuidv4 } from 'uuid';
+import generateTables from "./tableGenerate";
 
 const ABC = 'abcdefghijklmnopqrstuvwxyz1234567890';
 
@@ -11,26 +12,7 @@ const ABC = 'abcdefghijklmnopqrstuvwxyz1234567890';
  */
 export const connectToDatabase = async () => {
     const db = await open({ filename: 'sqlite-database.db', driver: Sqlite3Database });
-    await db.run(`
-        CREATE TABLE IF NOT EXISTS user (
-            name     TEXT NOT NULL,
-            password TEXT NOT NULL,
-            id       TEXT NOT NULL
-                        PRIMARY KEY
-                        UNIQUE
-        );
-    `);
-    await db.run(`
-        CREATE TABLE IF NOT EXISTS url (
-            original TEXT NOT NULL,
-            short    TEXT NOT NULL,
-            id       TEXT NOT NULL
-                        PRIMARY KEY
-                        UNIQUE,
-            user_id  TEXT REFERENCES user (id) 
-                        NOT NULL
-        );
-    `);
+    await generateTables(db);
     return db;
 };
 
