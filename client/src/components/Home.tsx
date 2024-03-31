@@ -19,7 +19,13 @@ const Home = () => {
             {shorts.map((entry, i) => {
                 const { original: url, short} = entry;
                 return <li key={i}>
-                    <a href={url}>{url}</a> shortened to: <a href={url}>{short}</a>
+                    <div><a href={url}>{url}</a></div>
+                    <div>shortened to:</div>
+                    <div><a href={url}>{short}</a></div>
+                    <button onClick={async () => {
+                        await navigator.clipboard.writeText(entry.short);
+                        alert(`"${entry.short}" has been copied to your clipboard`);
+                    }}>copy to clipboard</button>
                 </li>
             })}
         </ul>;

@@ -141,7 +141,11 @@ export const addURLShort = async (db: Database, url: string, userId: string) => 
  */
 export const getURLShortsByUserId = async (db: Database, userId: string) => {
     try {
-        return await db.all('SELECT original, short FROM url WHERE user_id = $userId;', { $userId: userId });
+        const rows = await db.all('SELECT original, short FROM url WHERE user_id = $userId;', { $userId: userId });
+        return rows.map(row => ({
+            original: row['original'],
+            short: process.env['DOMAIN'] + '/s/' + row['short'],
+        }));
     } catch (err) {
         console.log(err);
     }
