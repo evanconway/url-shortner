@@ -1,8 +1,10 @@
 import { Database as Sqlite3Database } from "sqlite3";
 import { Database, open } from 'sqlite';
 import { v4 as uuidv4 } from 'uuid';
+import bcrypt from 'bcrypt';
 import generateTables from "./tableGenerate";
 
+const saltRounds = 12;
 const ABC = 'abcdefghijklmnopqrstuvwxyz1234567890';
 
 /**
@@ -23,9 +25,38 @@ export const getUserIdByUsername = async (db: Database, username: string) => {
 };
 
 export const getUserIdByUsernamePassword = async (db: Database, username: string, password: string) => {
-    const row = await db.get('SELECT id FROM user WHERE name = $username and password = $password', { $username: username, $password: password});
-    if (row === undefined) return null
-    return row['id'] as string;
+    const userId = await getUserIdByUsername(db, username);
+    if (userId === null) return null;
+    const passRow = await db.get('SELECT password FROM user WHERE id = $userId', { $userId: userId});
+    if (passRow === undefined) return null;
+    const hashedPassword = passRow['password'];
+    if (hashedPassword === undefined) return null;
+    const passMatch = await bcrypt.compare(password, hashedPassword);
+    return passMatch ? userId : null;
+};
+
+/**
+ * Create new user in user table with given username and password. Return new users userId if
+ * successful, null otherwise.
+ * 
+ * @param db 
+ * @param username 
+ * @param password 
+ * @returns 
+ */
+export const createUser = async (db: Database, username: string, password: string) => {
+    try {
+        const userId = uuidv4();
+        const passwordHash = await bcrypt.hash(password, saltRounds);
+        await db.run(
+            'INSERT INTO user (id, name, password) VALUES($id, $name, $password)',
+            { $id: userId, $name: username, $password: passwordHash },
+        );
+        return userId;
+    } catch (err) {
+        console.error(err);
+    }
+    return null;
 };
 
 export const getUserIdBySessionId = async (db: Database, sessionId: string) => {
@@ -72,29 +103,6 @@ export const getUsernameByUserId = async (db: Database, userId: string) => {
     const result = row['name'];
     if (result === undefined) return null;
     return result as string;
-};
-
-/**
- * Create new user in user table with given username and password. Return new users userId if
- * successful, null otherwise.
- * 
- * @param db 
- * @param username 
- * @param password 
- * @returns 
- */
-export const createUser = async (db: Database, username: string, password: string) => {
-    try {
-        const userId = uuidv4();
-        await db.run(
-            'INSERT INTO user (id, name, password) VALUES($id, $name, $password)',
-            { $id: userId, $name: username, $password: password },
-        );
-        return userId;
-    } catch (err) {
-        console.error(err);
-    }
-    return null;
 };
 
 /**
