@@ -16,6 +16,7 @@ const LinkBar = () => {
     }, [getCookie('sessionId')]);
 
     return <div>
+        <h1>Ultra Scuffed URL Shortener</h1>
         {Link('/', 'Home')}
         {Link('/shorten', 'Shorten')}
         {Link('/logout', 'Logout')}
