@@ -7,7 +7,7 @@ const Home = () => {
     useEffect(() => {
         const get = async () => {
             const data = await(await fetch('app/view')).json();
-            setShorts(data);
+            setShorts(data['urls']);
         };
         get();
     }, [setShorts]);

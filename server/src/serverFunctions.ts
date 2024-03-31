@@ -68,7 +68,7 @@ export const getGetUsernameFromRequestFunc = (db: Database) => {
             res.sendStatus(404);
             return;
         }
-        res.send(JSON.stringify(name));
+        res.send({ name });
     };
 };
 
@@ -131,6 +131,6 @@ export const getGetUrlShortsFunc = (db: Database) => {
             res.sendStatus(500);
             return;
         }
-        res.send(JSON.stringify(urls));
+        res.send({ urls });
     };
 };

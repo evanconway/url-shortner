@@ -10,7 +10,7 @@ const LinkBar = () => {
     useEffect(() => {
         const get = async () => {
             const data = await(await fetch('/app/username')).json();
-            setUsername(data);
+            setUsername(data['name']);
         };
         get();
     }, [getCookie('sessionId')]);
